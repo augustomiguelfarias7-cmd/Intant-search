@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Instant Search — Buscador Luxuoso</title>
+
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- InstantSearch.css (base) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@7/themes/satellite-min.css" />
+
+  <style>
+    :root{
+      --bg:#071426;
+      --card:#0d1320;
+      --muted:#9fb0c6;
+      --accent-1:#6dd3ff;
+      --accent-2:#7b61ff;
+      --glass: rgba(255,255,255,0.03);
+      --radius:16px;
+      --max-width:1100px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(123,97,255,0.08), transparent 10%),
+        radial-gradient(1000px 500px at 90% 85%, rgba(109,211,255,0.06), transparent 10%),
+        linear-gradient(180deg,var(--bg), #021021 80%);
+      color:#eaf7ff;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:48px 18px;
+    }
+
+    .shell {
+      width:100%;
+      max-width:var(--max-width);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      border-radius:20px;
+      padding:28px;
+      box-shadow: 0 20px 60px rgba(2,6,23,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Header / brand */
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:18px;
+      margin-bottom:18px;
+    }
+    .logo {
+      width:72px;
+      height:72px;
+      border-radius:14px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color:#021021;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:20px;
+      box-shadow: 0 8px 24px rgba(123,97,255,0.14), inset 0 -6px 18px rgba(0,0,0,0.12);
+    }
+    .brand-meta { display:flex; flex-direction:column; }
+    .brand-meta .title { font-size:20px; font-weight:700; letter-spacing: -0.02em; }
+    .brand-meta .subtitle { font-size:13px; color:var(--muted); margin-top:4px; }
+
+    /* layout main */
+    .top-row { display:flex; gap:18px; align-items:center; margin-bottom:16px; }
+    .searchbox {
+      flex:1;
+      display:flex;
+      align-items:center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      padding:12px;
+      border-radius:14px;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .search-input {
+      flex:1;
+      background:transparent;
+      border:0;
+      outline:none;
+      color:inherit;
+      font-size:16px;
+      padding:4px 8px;
+    }
+    .icon-btn {
+      background:transparent;
+      border:0;
+      color:var(--muted);
+      font-weight:600;
+      cursor:pointer;
+      padding:8px;
+      border-radius:10px;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg,var(--accent-1),var(--accent-2));
+      color:#021021;
+      border:0;
+      padding:10px 16px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(123,97,255,0.12);
+    }
+
+    .layout {
+      display:grid;
+      grid-template-columns: 300px 1fr;
+      gap:18px;
+      margin-top:14px;
+    }
+
+    /* left (filtros) */
+    .left {
+      background:var(--card);
+      padding:14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.02);
+      height:fit-content;
+    }
+    .left h4 { margin:0 0 8px 0; font-size:14px; color:var(--muted); }
+
+    /* hits */
+    .hits { display:grid; gap:12px; }
+    .hit-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      padding:14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .hit-title { font-weight:700; color:#e9fbff; text-decoration:none; font-size:16px; }
+    .hit-snippet { color:var(--muted); margin-top:8px; font-size:14px; line-height:1.3; }
+    .hit-meta { margin-top:8px; color:var(--muted); font-size:12px; }
+
+    /* pagination area */
+    .pagination { display:flex; gap:8px; align-items:center; margin-top:12px; }
+
+    /* responsividade */
+    @media (max-width:920px){
+      .layout { grid-template-columns: 1fr; }
+      .left { order:2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell" id="instant-shell" role="application" aria-label="Instant Search — buscador local">
+    <div class="brand">
+      <div class="logo">IS</div>
+      <div class="brand-meta">
+        <div class="title">Instant Search</div>
+        <div class="subtitle">Busca instantânea — UI InstantSearch + índice local</div>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <button id="importBtn" class="icon-btn" title="Importar JSON">Importar JSON</button>
+        <button id="clearIndex" class="icon-btn" title="Limpar índice">Limpar</button>
+      </div>
+    </div>
+
+    <!-- Campo de busca (vamos conectar ao widget do InstantSearch via container) -->
+    <div class="top-row">
+      <div class="searchbox" id="searchbox-container">
+        <input id="search-input" class="search-input" placeholder="Digite para buscar... (Instant Search)" aria-label="Buscar" />
+      </div>
+      <button id="btnSearch" class="btn-primary">Buscar</button>
+    </div>
+
+    <div class="layout">
+      <aside class="left">
+        <h4>Filtros</h4>
+        <div id="refinement-list"></div>
+        <h4 style="margin-top:12px">Opções</h4>
+        <div style="color:var(--muted); font-size:13px">
+          Este demo usa um índice local construído no navegador com FlexSearch. Você pode:
+          <ul style="margin:8px 0 0 18px; padding:0; color:var(--muted)">
+            <li>Importar um JSON de documentos (botão "Importar JSON").</li>
+            <li>Substituir os documentos embutidos no código por seu dataset.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main>
+        <div id="stats" style="color:var(--muted); font-size:13px; margin-bottom:8px"></div>
+
+        <!-- hits -->
+        <div id="hits" class="hits"></div>
+
+        <!-- pagination -->
+        <div class="pagination" id="pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/flexsearch/dist/flexsearch.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+
+  <script>
+    // ======================
+    // CONFIGURAÇÕES E DADOS
+    // ======================
+    // Para tornar "real": você pode substituir DOCUMENTS por um grande JSON de páginas obtidas por crawler.
+    // Aqui deixei alguns exemplos e a opção de importar um JSON via botão.
+    const DOCUMENTS = [
+      { id: 1, title: "JavaScript moderno: guia prático", content: "Guia com práticas modernas de JS: módulos, async/await e padrões.", url: "https://exemplo.com/js", source: "exemplo.com", published: "2025-04-02" },
+      { id: 2, title: "Como criar um buscador local", content: "Estratégias para indexar conteúdo localmente no navegador usando FlexSearch.", url: "https://exemplo.com/local-search", source: "exemplo.com", published: "2025-02-12" },
+      { id: 3, title: "Notícias de tecnologia", content: "Resumo semanal sobre IA, web e novos frameworks.", url: "https://noticias.exemplo/tech", source: "noticias.exemplo", published: "2025-06-01" },
+      { id: 4, title: "Design luxuoso para interfaces", content: "Técnicas de UI para criar layouts de aparência premium.", url: "https://design.exemplo/luxo", source: "design.exemplo", published: "2025-01-20" },
+      { id: 5, title: "Indexação e performance", content: "Melhore a performance do seu buscador local distribuindo índices ou usando Web Workers.", url: "https://exemplo.com/perf", source: "exemplo.com", published: "2024-11-30" }
+      // ... você pode carregar muito mais via Import
+    ];
+
+    // ====== Construção do índice FlexSearch (Document API) ======
+    const index = new FlexSearch.Document({
+      document: {
+        id: "id",
+        index: ["title", "content"],
+        store: ["title", "content", "url", "source", "published"]
+      },
+      tokenize: "forward",
+      encode: "icase",
+      depth: 2,
+      cache: true
+    });
+
+    function buildIndex(docs){
+      // remove index atual (se houver)
+      // FlexSearch.Document não tem clear() direto; recriamos uma nova instância se necessário
+      // Para simplicidade, só adicionamos documentos a index atual
+      for(const d of docs){
+        index.add(d);
+      }
+    }
+
+    // inicializa
+    buildIndex(DOCUMENTS);
+
+    // ============================
+    // searchClient custom (InstantSearch)
+    // ============================
+    // O InstantSearch espera que searchClient.search(requests) retorne:
+    // Promise.resolve({ results: [ { hits: [...], nbHits, page, hitsPerPage, processingTimeMS, query } ] })
+    const searchClient = {
+      search(requests) {
+        // requests: array (p/ cada índice - aqui só usamos um índice local)
+        const results = requests.map(req => {
+          const params = req.params || {};
+          const query = params.query || "";
+          const page = params.page || 0;
+          const hitsPerPage = params.hitsPerPage || 10;
+
+          // pesquisa no índice com enrich para preservar ordem por campo
+          const raw = index.search(query, { enrich: true });
+
+          // combinar ids mantendo ordem e sem duplicatas
+          const seen = new Set();
+          const idsOrdered = [];
+          for(const fieldRes of raw){
+            for(const id of fieldRes.result){
+              if(!seen.has(id)){
+                seen.add(id);
+                idsOrdered.push(id);
+              }
+            }
+          }
+
+          // buscar documentos reais (usando DOCUMENTS como fonte)
+          const docs = idsOrdered.map(id => DOCUMENTS.find(d => d.id === id)).filter(Boolean);
+
+          // paginação
+          const nbHits = docs.length;
+          const start = page * hitsPerPage;
+          const sliced = docs.slice(start, start + hitsPerPage).map(doc => {
+            // garantir campos esperados pelo front
+            return {
+              objectID: doc.id,
+              title: doc.title,
+              content: doc.content,
+              url: doc.url,
+              source: doc.source,
+              published: doc.published
+            };
+          });
+
+          return {
+            hits: sliced,
+            nbHits,
+            page,
+            hitsPerPage,
+            processingTimeMS: 0,
+            query
+          };
+        });
+
+        return Promise.resolve({ results });
+      },
+
+      // searchForFacetValues (opcional)
+      searchForFacetValues() {
+        return Promise.resolve({ facetHits: [] });
+      }
+    };
+
+    // ============================
+    // InstantSearch UI
+    // ============================
+    const search = instantsearch({
+      indexName: 'instant_search', // nome simbólico — não usado no local client
+      searchClient,
+      routing: false
+    });
+
+    // --- widgets ---
+    search.addWidgets([
+      // Search box (vamos usar container customizado para ligar ao input manual)
+      instantsearch.widgets.searchBox({
+        container: '#searchbox-container',
+        placeholder: 'Digite para buscar...',
+        showReset: false,
+        showSubmit: false,
+        showLoadingIndicator: false,
+        cssClasses: {
+          input: 'search-input'
+        }
+      }),
+
+      // stats (quantidade)
+      instantsearch.widgets.stats({
+        container: '#stats',
+        templates: {
+          text: (data) => {
+            // data: { hitsPerPage, nbHits, page, processingTimeMS }
+            return `${data.nbHits} resultado(s) — página ${data.page + 1}`;
+          }
+        }
+      }),
+
+      // hits (lista)
+      instantsearch.widgets.hits({
+        container: '#hits',
+        templates: {
+          item: (hit) => {
+            const title = escapeHtml(hit.title || 'Sem título');
+            const snippet = escapeHtml((hit.content || '').slice(0, 280));
+            const domain = escapeHtml(hit.source || '');
+            const pub = hit.published ? ` • ${new Date(hit.published).toLocaleDateString('pt-BR')}` : '';
+            return `
+              <div class="hit-card" role="article">
+                <a class="hit-title" href="${escapeAttr(hit.url || '#')}" target="_blank" rel="noopener noreferrer">${title}</a>
+                <div class="hit-snippet">${snippet}...</div>
+                <div class="hit-meta">${domain}${pub}</div>
+              </div>
+            `;
+          }
+        }
+      }),
+
+      // pagination
+      instantsearch.widgets.pagination({
+        container: '#pagination',
+        padding: 1,
+        scrollTo: false
+      })
+    ]);
+
+    // Start InstantSearch
+    search.start();
+
+    // === conectar botão Buscar externo ao InstantSearch ===
+    document.getElementById('btnSearch').addEventListener('click', () => {
+      // o widget searchBox já gerencia o input; apenas disparar a busca garantindo foco
+      const input = document.querySelector('.ais-SearchBox-input');
+      if(input){
+        input.focus();
+        // dispatch input event (InstantSearch reage automaticamente)
+        const ev = new Event('input', { bubbles: true });
+        input.dispatchEvent(ev);
+      }
+    });
+
+    // === botões Importar / Limpar ===
+    document.getElementById('clearIndex').addEventListener('click', () => {
+      // reinicia tudo (recarrega a página é a forma mais simples aqui)
+      window.location.reload();
+    });
+
+    document.getElementById('importBtn').addEventListener('click', async () => {
+      // permite ao usuário selecionar um arquivo .json com array de documentos
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = async (e) => {
+        const f = e.target.files[0];
+        if(!f) return;
+        try {
+          const text = await f.text();
+          const arr = JSON.parse(text);
+          if(!Array.isArray(arr)) throw new Error('JSON deve ser um array de documentos');
+          // limpar documento atual e reconstruir index com novos docs
+          // nota: para simplicidade aqui vamos substituir DOCUMENTS (imutável em código)
+          // mas vamos adicionar ao índice os novos docs
+          for(const d of arr) {
+            // espera que cada doc tenha id, title, content (mínimo)
+            if(!d.id) d.id = Math.random().toString(36).slice(2);
+            DOCUMENTS.push(d);
+            index.add(d);
+          }
+          // notificar InstantSearch para refazer busca atual
+          search.helper && search.helper.setQueryParameter && search.helper.search();
+          alert('Importação concluída: ' + arr.length + ' documentos adicionados.');
+        } catch(err) {
+          alert('Erro ao importar JSON: ' + (err.message || err));
+        }
+      };
+      input.click();
+    });
+
+    // Utilities: escape simples (segurança ao injetar HTML)
+    function escapeHtml(s){
+      return String(s || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    function escapeAttr(s){
+      return (s || '#').replace(/"/g, '&quot;');
+    }
+
+    // Inicial: foco inteligente no input
+    // Observação: InstantSearch substitui o input com sua própria estrutura após start,
+    // mas já existe uma input com classe .ais-SearchBox-input.
+    setTimeout(() => {
+      const input = document.querySelector('.ais-SearchBox-input');
+      if(input) input.setAttribute('placeholder', 'Digite para buscar...');
+    }, 300);
+
+  </script>
+</body>
+</html>
